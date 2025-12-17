@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight's Tour & LMIS Visualization</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <h1>Teori<span class="highlight"> Graf</span></h1>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="switchTab('knight')">Knight's Tour</button>
+                <button class="nav-btn" onclick="switchTab('lmis')">LMIS</button>
+            </div>
+
+            <div id="knight-controls" class="control-group">
+                <h3>Pengaturan Knight</h3>
+                <label>Tipe Tour:</label>
+                <div class="toggle-group">
+                    <button id="btn-open" class="toggle-btn active" onclick="setTourType('open')">Open</button>
+                    <button id="btn-closed" class="toggle-btn" onclick="setTourType('closed')">Closed</button>
+                </div>
+                
+                <label>Kecepatan Animasi:</label>
+                <input type="range" id="speed-slider" min="1" max="100" value="50">
+                
+                <div class="action-buttons">
+                    <button class="primary-btn" onclick="startKnightTour()">Mulai Tour</button>
+                    <button class="secondary-btn" onclick="resetKnightBoard()">Reset</button>
+                </div>
+                <p class="instruction"><small>Klik kotak di papan untuk posisi awal kuda.</small></p>
+            </div>
+
+            <div id="lmis-controls" class="control-group hidden">
+                <h3>Pengaturan LMIS</h3>
+                <label>Input Sequence (pisahkan koma):</label>
+                <input type="text" id="lmis-input" value="4, 1, 13, 7, 0, 2, 8, 11, 3">
+                
+                <div class="action-buttons">
+                    <button class="primary-btn" onclick="startLMIS()">Cari Sequence</button>
+                </div>
+                <p class="instruction"><small>Menggunakan algoritma Tree (DFS) untuk mencari subsequence terpanjang.</small></p>
+            </div>
+
+            <div class="status-panel">
+                <h4>Status</h4>
+                <div id="status-text">Siap</div>
+                <div class="progress-bar"><div id="progress-fill"></div></div>
+            </div>
+        </aside>
+
+        <main class="visualizer">
+            
+            <div id="knight-view" class="view-panel active">
+                <div class="chessboard-container">
+                    <svg id="lines-layer"></svg>
+                    <div id="chessboard"></div>
+                </div>
+            </div>
+
+            <div id="lmis-view" class="view-panel hidden">
+                <div class="lmis-container">
+                    <div id="tree-visualization" class="tree-viz"></div>
+                    <div id="lmis-result" class="result-box"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

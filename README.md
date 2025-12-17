@@ -1,1 +1,0 @@
-# KnightsTour-LMIS
