@@ -282,23 +282,80 @@ async function animateTour(path, signal) {
  * TASK 2: LMIS (TREE APPLICATION)
  * ==========================================
  */
+function validateLMISInput(inputStr) {
+    if (!inputStr || inputStr.trim() === '') {
+        return { valid: false, message: "Input kosong!" };
+    }
+
+    const raw = inputStr.split(',');
+    let numbers = [];
+
+    for (let val of raw) {
+        val = val.trim();
+        if (val === '') {
+            return { valid: false, message: "Format input salah (ada koma ganda)." };
+        }
+
+        let num = Number(val);
+        if (isNaN(num)) {
+            return { valid: false, message: `Input bukan angka: "${val}"` };
+        }
+
+        numbers.push(num);
+    }
+
+    if (numbers.length === 0) {
+        return { valid: false, message: "Tidak ada angka valid!" };
+    }
+
+    return { valid: true, numbers };
+}
+
 
 let lmisBestPath = [];
+function isSubsequence(arr, sub) {
+    let i = 0, j = 0;
+    while (i < arr.length && j < sub.length) {
+        if (arr[i] === sub[j]) j++;
+        i++;
+    }
+    return j === sub.length;
+}
+
+function isIncreasing(seq) {
+    for (let i = 1; i < seq.length; i++) {
+        if (seq[i] <= seq[i - 1]) return false;
+    }
+    return true;
+}
+
 
 function startLMIS() {
     const inputStr = document.getElementById('lmis-input').value;
-    // Parse input
-    try {
-        lmisInput = inputStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
-        if (lmisInput.length === 0) throw new Error();
-    } catch (e) {
-        alert("Input tidak valid!");
+    const claimStr = document.getElementById('lmis-claim')?.value || "";
+
+    // Parse input sequence
+    lmisInput = inputStr
+        .split(',')
+        .map(n => parseInt(n.trim()))
+        .filter(n => !isNaN(n));
+
+    // Parse claimed LMIS
+    const claimedLMIS = claimStr
+        .split(',')
+        .map(n => parseInt(n.trim()))
+        .filter(n => !isNaN(n));
+
+    if (lmisInput.length === 0) {
+        alert("Input sequence tidak valid!");
         return;
     }
 
     const container = document.getElementById('tree-visualization');
+    const resultBox = document.getElementById('lmis-result');
     container.innerHTML = '';
-    
+    resultBox.innerHTML = '';
+
     // Create visual nodes
     lmisInput.forEach(num => {
         let n = document.createElement('div');
@@ -309,14 +366,61 @@ function startLMIS() {
 
     // Reset logic
     lmisBestPath = [];
-    updateStatus("Mencari LMIS dengan Tree Search...", 0);
+    updateStatus("Mencari LMIS dengan Tree Search...", 10);
 
     // Run Recursive Search
     findLMISRecursive(-1, 0, []);
-    
-    // Visualize Result
+
+    // ==========================
+    // TAMPILKAN JAWABAN LMIS (WAJIB)
+    // ==========================
+    resultBox.innerHTML = `
+        <h3>Jawaban LMIS</h3>
+        <p><strong>Input:</strong> [ ${lmisInput.join(', ')} ]</p>
+        <p><strong>LMIS:</strong> [ ${lmisBestPath.join(', ')} ]</p>
+        <p><strong>Panjang:</strong> ${lmisBestPath.length}</p>
+    `;
+
+    // ==========================
+    // VALIDASI KLAIM (JIKA ADA)
+    // ==========================
+    if (claimedLMIS.length > 0) {
+
+        if (!isSubsequence(lmisInput, claimedLMIS)) {
+            resultBox.innerHTML += `
+                <hr>
+                <p style="color:red;"><strong>❌ Klaim TIDAK VALID</strong></p>
+                <p>Klaim bukan subsequence dari input.</p>
+            `;
+        }
+        else if (!isIncreasing(claimedLMIS)) {
+            resultBox.innerHTML += `
+                <hr>
+                <p style="color:red;"><strong>❌ Klaim TIDAK VALID</strong></p>
+                <p>Klaim tidak monoton meningkat.</p>
+            `;
+        }
+        else if (claimedLMIS.length !== lmisBestPath.length) {
+            resultBox.innerHTML += `
+                <hr>
+                <p style="color:red;"><strong>❌ Klaim TIDAK VALID</strong></p>
+                <p>Panjang maksimum seharusnya ${lmisBestPath.length}</p>
+            `;
+        }
+        else {
+            resultBox.innerHTML += `
+                <hr>
+                <p style="color:lime;"><strong>✅ Klaim VALID</strong></p>
+                <p>Klaim merupakan LMIS yang benar.</p>
+            `;
+        }
+    }
+
     visualizeLMIS(lmisBestPath);
+    updateStatus("Jawaban LMIS ditampilkan", 100);
 }
+
+
 
 // Tree / Recursive Logic for LMIS
 // State: (Previous Index, Current Index, Current Path)
@@ -341,15 +445,11 @@ function findLMISRecursive(prevIndex, currIndex, currentPath) {
 
 function visualizeLMIS(bestPath) {
     const nodes = document.querySelectorAll('.num-node');
-    const resultBox = document.getElementById('lmis-result');
-    
-    // Reset styles
+
     nodes.forEach(n => n.className = 'num-node dimmed');
 
-    // Highlight logic
     let pathIndex = 0;
     lmisInput.forEach((num, index) => {
-        // If this number is in the best path (and in correct order)
         if (pathIndex < bestPath.length && num === bestPath[pathIndex]) {
             nodes[index].className = 'num-node included';
             pathIndex++;
@@ -357,11 +457,15 @@ function visualizeLMIS(bestPath) {
     });
 
     resultBox.innerHTML = `
-        <h3>Hasil Akhir</h3>
-        <p>Sequence Terpanjang: <strong>[ ${bestPath.join(', ')} ]</strong></p>
-        <p>Panjang: <strong>${bestPath.length}</strong></p>
-        <p><small>Solusi ditemukan menggunakan pencarian kedalaman (Tree/Recursive).</small></p>
+        <h3>Jawaban LMIS</h3>
+        <p><strong>Input:</strong> [ ${lmisInput.join(', ')} ]</p>
+        <p><strong>Longest Monotonically Increasing Subsequence:</strong></p>
+        <p style="font-size:18px;">
+            ➜ [ <strong>${bestPath.join(', ')}</strong> ]
+        </p>
+        <p><strong>Panjang LMIS:</strong> ${bestPath.length}</p>
+        <p><small>Metode: Tree Search (Include / Exclude)</small></p>
     `;
-    
-    updateStatus("Pencarian LMIS Selesai", 100);
+
+    updateStatus("Jawaban LMIS ditampilkan", 100);
 }
