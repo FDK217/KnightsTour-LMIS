@@ -1,4 +1,4 @@
-# Knight's Tour & LMIS Visualization 🏰♟️📈
+# Knight's Tour & LMIS Visualization ♟️📈
 
 **Ringkasan singkat**
 
