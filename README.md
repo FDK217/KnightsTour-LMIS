@@ -2,7 +2,7 @@
 
 **Ringkasan singkat**
 
-Aplikasi web kecil untuk visualisasi Knight's Tour (papan catur) dan demonstrasi algoritma LMIS (Longest Monotonically Increasing Subsequence). Dibangun sebagai halaman statis (HTML/CSS/JS) buka `index.html` di browser atau jalankan dengan development server seperti Live Server.
+Aplikasi web kecil untuk visualisasi Knight's Tour (papan catur) dan demonstrasi algoritma LMIS (Longest Monotonically Increasing Subsequence). Dibangun sebagai halaman statis (HTML/CSS/JS), buka `index.html` di browser atau jalankan dengan development server seperti Live Server.
 
 ---
 
@@ -43,7 +43,7 @@ Contoh keluaran untuk input di atas: `4, 7, 8, 11` (salah satu LMIS, sesuai atur
 4. Atur kecepatan animasi dengan slider **Kecepatan Animasi**.
 5. Klik **Mulai Tour** untuk menjalankan solver; animasi langkah akan terlihat di papan.
 6. Jika solver tidak menemukan solusi (mis. untuk beberapa posisi awal pada tipe Closed), akan muncul pesan `Gagal menemukan solusi (Coba posisi lain)` — coba ubah posisi awal atau ubah tipe tour.
-7. Gunakan **Reset** untuk membatalkan تشغيل atau mengatur ulang papan.
+7. Gunakan **Reset** untuk membatalkan atau mengatur ulang papan.
 
 Catatan teknis: solver menggunakan heuristik Warnsdorff (pencarian berbasis derajat valid move) dan meng-animate jalur bila ditemukan.
 ---
