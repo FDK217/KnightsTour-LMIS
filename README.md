@@ -42,7 +42,7 @@ Contoh keluaran untuk input di atas: `4, 7, 8, 11` (salah satu LMIS, sesuai atur
 3. Pilih tipe tour: **Open** (bukan harus kembali ke awal) atau **Closed** (harus kembali ke posisi awal).
 4. Atur kecepatan animasi dengan slider **Kecepatan Animasi**.
 5. Klik **Mulai Tour** untuk menjalankan solver; animasi langkah akan terlihat di papan.
-6. Jika solver tidak menemukan solusi (mis. untuk beberapa posisi awal pada tipe Closed), akan muncul pesan `Gagal menemukan solusi (Coba posisi lain)` — coba ubah posisi awal atau ubah tipe tour.
+6. Jika solver tidak menemukan solusi (mis. untuk beberapa posisi awal pada tipe Closed), akan muncul pesan `Gagal menemukan solusi (Coba posisi lain)`, coba ubah posisi awal atau ubah tipe tour.
 7. Gunakan **Reset** untuk membatalkan atau mengatur ulang papan.
 
 Catatan teknis: solver menggunakan heuristik Warnsdorff (pencarian berbasis derajat valid move) dan meng-animate jalur bila ditemukan.
