@@ -2,7 +2,7 @@
 
 **Ringkasan singkat**
 
-Aplikasi web kecil untuk visualisasi Knight's Tour (papan catur) dan demonstrasi algoritma LMIS (Longest Monotonically Increasing Subsequence). Dibangun sebagai halaman statis (HTML/CSS/JS) — buka `index.html` di browser atau jalankan dengan development server seperti Live Server.
+Aplikasi web kecil untuk visualisasi Knight's Tour (papan catur) dan demonstrasi algoritma LMIS (Longest Monotonically Increasing Subsequence). Dibangun sebagai halaman statis (HTML/CSS/JS) buka `index.html` di browser atau jalankan dengan development server seperti Live Server.
 
 ---
 
