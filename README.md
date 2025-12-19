@@ -36,14 +36,6 @@ Contoh keluaran untuk input di atas: `4, 7, 8, 11` (salah satu LMIS, sesuai atur
 
 ---
 
-## Menjalankan & Mengembangkan 🔧
-
-- Tech: Vanilla HTML/CSS/JS (tidak ada build step).
-- Untuk mengedit: buka `script.js` dan lihat bagian `TASK 2: LMIS (TREE APPLICATION)` untuk logika rekursif dan `visualizeLMIS` untuk output.
-- Jika ingin menambahkan fitur: menambahkan opsi "show all LMIS" atau mengembalikan/ekstensi klaim berdasarkan indeks/penjelasan validasi adalah perubahan lokal yang langsung dapat diuji di browser.
-
----
-
 ## Testing singkat ✅
 
 - Uji input: `4, 1, 13, 7, 0, 2, 8, 11, 3` → periksa bahwa hasil menunjukkan subsequence panjang maksimum (mis. `4,7,8,11` atau variasi setara).
