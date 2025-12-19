@@ -15,6 +15,7 @@ let abortController = null; // To stop async tasks
 
 // LMIS Variables
 let lmisInput = [];
+let lmisDebug = { fallbackUsed: false, foundBy: null, input: [], bestPath: [] }; // Debug information for LMIS processing
 
 /**
  * INITIALIZATION
@@ -36,8 +37,18 @@ function switchTab(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`.nav-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
     
-    document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
-    document.getElementById(`${tab}-view`).classList.remove('hidden');
+    // Hide all view panels and remove their active state
+    document.querySelectorAll('.view-panel').forEach(p => {
+        p.classList.remove('active');
+        p.classList.add('hidden');
+    });
+
+    // Show the selected view and mark it active
+    const view = document.getElementById(`${tab}-view`);
+    if (view) {
+        view.classList.remove('hidden');
+        view.classList.add('active');
+    }
 
     document.getElementById('knight-controls').classList.toggle('hidden', tab !== 'knight');
     document.getElementById('lmis-controls').classList.toggle('hidden', tab !== 'lmis');
@@ -332,92 +343,67 @@ function isIncreasing(seq) {
 
 function startLMIS() {
     const inputStr = document.getElementById('lmis-input').value;
-    const claimStr = document.getElementById('lmis-claim')?.value || "";
 
-    // Parse input sequence
-    lmisInput = inputStr
-        .split(',')
-        .map(n => parseInt(n.trim()))
-        .filter(n => !isNaN(n));
-
-    // Parse claimed LMIS
-    const claimedLMIS = claimStr
-        .split(',')
-        .map(n => parseInt(n.trim()))
-        .filter(n => !isNaN(n));
-
-    if (lmisInput.length === 0) {
-        alert("Input sequence tidak valid!");
+    // Validate & parse input using helper
+    const validation = validateLMISInput(inputStr);
+    if (!validation.valid) {
+        alert(validation.message);
         return;
     }
+    lmisInput = validation.numbers;
+
+
 
     const container = document.getElementById('tree-visualization');
     const resultBox = document.getElementById('lmis-result');
     container.innerHTML = '';
-    resultBox.innerHTML = '';
+    resultBox.innerHTML = '<em>Memproses...</em>';
 
-    // Create visual nodes
-    lmisInput.forEach(num => {
+    // Create visual nodes (include index badge)
+    lmisInput.forEach((num, idx) => {
         let n = document.createElement('div');
         n.className = 'num-node';
-        n.innerText = num;
+        n.innerHTML = `
+            <div class="num-val">${num}</div>
+            <div class="num-idx">#${idx}</div>
+        `;
         container.appendChild(n);
     });
 
     // Reset logic
     lmisBestPath = [];
+    lmisDebug = { fallbackUsed: false, foundBy: null, input: lmisInput.slice(), bestPath: [] };
     updateStatus("Mencari LMIS dengan Tree Search...", 10);
 
-    // Run Recursive Search
-    findLMISRecursive(-1, 0, []);
+    try {
+        // Run Recursive Search
+        findLMISRecursive(-1, 0, []);
 
-    // ==========================
-    // TAMPILKAN JAWABAN LMIS (WAJIB)
-    // ==========================
-    resultBox.innerHTML = `
-        <h3>Jawaban LMIS</h3>
-        <p><strong>Input:</strong> [ ${lmisInput.join(', ')} ]</p>
-        <p><strong>LMIS:</strong> [ ${lmisBestPath.join(', ')} ]</p>
-        <p><strong>Panjang:</strong> ${lmisBestPath.length}</p>
-    `;
+        // Fallback: if nothing found, pick a single maximum element
+        if (!lmisBestPath || lmisBestPath.length === 0) {
+            if (lmisInput.length > 0) {
+                const maxVal = Math.max(...lmisInput);
+                lmisBestPath = [maxVal];
+                lmisDebug.fallbackUsed = true;
+                lmisDebug.foundBy = 'fallback-max';
+            }
+        } else {
+            lmisDebug.foundBy = 'tree-search';
+        }
+        lmisDebug.bestPath = lmisBestPath.slice();
 
-    // ==========================
-    // VALIDASI KLAIM (JIKA ADA)
-    // ==========================
-    if (claimedLMIS.length > 0) {
+        // Visualize and display final result (visualizeLMIS will update #lmis-result)
+        visualizeLMIS(lmisBestPath);
 
-        if (!isSubsequence(lmisInput, claimedLMIS)) {
-            resultBox.innerHTML += `
-                <hr>
-                <p style="color:red;"><strong>❌ Klaim TIDAK VALID</strong></p>
-                <p>Klaim bukan subsequence dari input.</p>
-            `;
-        }
-        else if (!isIncreasing(claimedLMIS)) {
-            resultBox.innerHTML += `
-                <hr>
-                <p style="color:red;"><strong>❌ Klaim TIDAK VALID</strong></p>
-                <p>Klaim tidak monoton meningkat.</p>
-            `;
-        }
-        else if (claimedLMIS.length !== lmisBestPath.length) {
-            resultBox.innerHTML += `
-                <hr>
-                <p style="color:red;"><strong>❌ Klaim TIDAK VALID</strong></p>
-                <p>Panjang maksimum seharusnya ${lmisBestPath.length}</p>
-            `;
-        }
-        else {
-            resultBox.innerHTML += `
-                <hr>
-                <p style="color:lime;"><strong>✅ Klaim VALID</strong></p>
-                <p>Klaim merupakan LMIS yang benar.</p>
-            `;
-        }
+        // Debug log (visible in console) to aid troubleshooting
+        console.log('LMIS input:', lmisInput, 'bestPath:', lmisBestPath);
+
+        updateStatus("Jawaban LMIS ditampilkan", 100);
+    } catch (err) {
+        console.error('LMIS error:', err);
+        resultBox.innerHTML = `<p style="color:red"><strong>Error saat memproses LMIS:</strong> ${err.message}</p>`;
+        updateStatus("Error saat memproses LMIS", 0);
     }
-
-    visualizeLMIS(lmisBestPath);
-    updateStatus("Jawaban LMIS ditampilkan", 100);
 }
 
 
@@ -433,39 +419,84 @@ function findLMISRecursive(prevIndex, currIndex, currentPath) {
         return;
     }
 
-    // Branch 1: Exclude currIndex
-    findLMISRecursive(prevIndex, currIndex + 1, currentPath);
-
-    // Branch 2: Include currIndex (Only if monotonically increasing)
+    // Branch 1: Include currIndex (Only if monotonically increasing)
     if (prevIndex === -1 || lmisInput[currIndex] > lmisInput[prevIndex]) {
         let newPath = [...currentPath, lmisInput[currIndex]];
         findLMISRecursive(currIndex, currIndex + 1, newPath);
     }
+
+    // Branch 2: Exclude currIndex
+    findLMISRecursive(prevIndex, currIndex + 1, currentPath);
 }
 
 function visualizeLMIS(bestPath) {
     const nodes = document.querySelectorAll('.num-node');
+    const resultBox = document.getElementById('lmis-result');
 
-    nodes.forEach(n => n.className = 'num-node dimmed');
+    // Dim all nodes first
+    nodes.forEach(n => {
+        n.classList.remove('included');
+        n.classList.add('dimmed');
+    });
 
+    // Highlight the nodes that are part of the best path in order and capture indices
     let pathIndex = 0;
+    const bestIndices = [];
     lmisInput.forEach((num, index) => {
         if (pathIndex < bestPath.length && num === bestPath[pathIndex]) {
-            nodes[index].className = 'num-node included';
+            if (nodes[index]) {
+                nodes[index].classList.remove('dimmed');
+                nodes[index].classList.add('included');
+            }
+            bestIndices.push(index);
             pathIndex++;
         }
     });
 
-    resultBox.innerHTML = `
-        <h3>Jawaban LMIS</h3>
-        <p><strong>Input:</strong> [ ${lmisInput.join(', ')} ]</p>
-        <p><strong>Longest Monotonically Increasing Subsequence:</strong></p>
-        <p style="font-size:18px;">
-            ➜ [ <strong>${bestPath.join(', ')}</strong> ]
-        </p>
-        <p><strong>Panjang LMIS:</strong> ${bestPath.length}</p>
-        <p><small>Metode: Tree Search (Include / Exclude)</small></p>
-    `;
+    // Show results (handle empty bestPath gracefully)
+    if (!bestPath || bestPath.length === 0) {
+        resultBox.innerHTML = `
+            <h3>Jawaban LMIS</h3>
+            <p><strong>Input:</strong> [ ${lmisInput.join(', ')} ]</p>
+            <p><strong>Longest Monotonically Increasing Subsequence:</strong> <em>tidak ditemukan</em></p>
+            <p><strong>Panjang LMIS:</strong> 0</p>
+        `;
+    } else {
+        const indices0 = bestIndices.join(', ');
+        const indices1 = bestIndices.map(i => i + 1).join(', ');
+        resultBox.innerHTML = `
+            <h3>Jawaban LMIS</h3>
+            <p><strong>Input:</strong> [ ${lmisInput.join(', ')} ]</p>
+            <p><strong>Longest Monotonically Increasing Subsequence:</strong></p>
+            <p style="font-size:18px;">
+                ➜ [ <strong>${bestPath.join(', ')}</strong> ]
+            </p>
+            <p><strong>Panjang LMIS:</strong> ${bestPath.length}</p>
+            <p><strong>Indeks (0-based):</strong> [ ${indices0} ]</p>
+            <p><strong>Indeks (1-based):</strong> [ ${indices1} ]</p>
+            <p><small>Metode: Tree Search (Include / Exclude)</small></p>
+        `;
+    }
+
+    // Append a small debug panel so results are visible without opening the console
+    try {
+        const debugObj = {
+            input: lmisDebug.input || lmisInput,
+            bestPath: bestPath,
+            fallbackUsed: lmisDebug.fallbackUsed,
+            foundBy: lmisDebug.foundBy
+        };
+
+        resultBox.innerHTML += `
+            <details style="margin-top:12px;color:var(--text-muted);">
+                <summary style="cursor:pointer">Debug Info</summary>
+                <pre style="white-space:pre-wrap;background:rgba(255,255,255,0.02);padding:8px;border-radius:6px;margin-top:8px;color:var(--text-muted)">${JSON.stringify(debugObj, null, 2)}</pre>
+            </details>
+        `;
+    } catch (e) {
+        // Ignore debug rendering errors
+        console.warn('Could not render LMIS debug panel:', e);
+    }
 
     updateStatus("Jawaban LMIS ditampilkan", 100);
 }

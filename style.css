@@ -220,8 +220,8 @@ path {
 }
 
 .num-node {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: var(--board-light);
     display: flex;
@@ -230,11 +230,28 @@ path {
     font-weight: bold;
     transition: all 0.5s;
     border: 2px solid transparent;
+    position: relative;
+    padding: 6px;
+    box-sizing: border-box;
+    flex-direction: column;
 }
 
-.num-node.processing { border-color: var(--accent); transform: scale(1.1); }
-.num-node.included { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
-.num-node.dimmed { opacity: 0.3; }
+.num-val { font-size: 16px; line-height: 1; }
+.num-idx {
+    position: absolute;
+    bottom: -12px;
+    right: 6px;
+    font-size: 11px;
+    opacity: 0.9;
+    color: rgba(255,255,255,0.9);
+    background: rgba(0,0,0,0.06);
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.num-node.processing { border-color: var(--accent); transform: scale(1.06); }
+.num-node.included { background: var(--primary); box-shadow: 0 0 12px var(--primary); transform: scale(1.08); }
+.num-node.dimmed { opacity: 0.3; transform: scale(0.98); }
 
 .result-box {
     padding: 20px;
